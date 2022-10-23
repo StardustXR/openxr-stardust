@@ -20,10 +20,10 @@ use oxr::{
 use parking_lot::Mutex;
 use rustc_hash::FxHashMap;
 use std::{
-	ffi::{c_char, CStr},
+	ffi::c_char,
 	mem::{size_of, transmute},
 };
-use util::{enumerate, wrap_oxr_err};
+use util::{enumerate, str_from_const_char};
 
 pub type XrResult = openxr_sys::Result;
 
@@ -77,17 +77,15 @@ pub unsafe extern "system" fn xrGetInstanceProcAddr(
 	name: *const c_char,
 	function: &mut VoidFunction,
 ) -> XrResult {
-	wrap_oxr_err(move || {
-		let name = CStr::from_ptr(name);
-		let name = name.to_str().unwrap();
+	wrap_oxr! {
 		let instance = if instance.into_raw() == 0_u64 {
 			None
 		} else {
 			Some(instance)
 		};
-		*function = get_instance_proc_addr(instance, name)?;
+		*function = get_instance_proc_addr(instance, str_from_const_char(name)?)?;
 		Ok(())
-	})
+	}
 }
 
 fn get_instance_proc_addr(
@@ -104,6 +102,7 @@ fn get_instance_proc_addr(
 		Some(instance) => StardustInstance::from_oxr(instance)?.get_proc_addr(name),
 	}
 }
+
 /// # Safety
 /// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#xrEnumerateApiLayerProperties
 #[no_mangle]

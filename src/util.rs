@@ -38,13 +38,26 @@ macro_rules! oxr_fns {
 	};
 }
 
-pub fn string_from_const_char(ptr: *const c_char) -> Option<String> {
-	(!ptr.is_null()).then(|| unsafe { CStr::from_ptr(ptr).to_str().unwrap().to_string() })
+pub fn str_from_const_char<'a>(ptr: *const c_char) -> Result<&'a str, XrResult> {
+	if ptr.is_null() {
+		return Err(XrResult::ERROR_VALIDATION_FAILURE);
+	}
+	Ok(unsafe {
+		CStr::from_ptr(ptr)
+			.to_str()
+			.map_err(|_| XrResult::ERROR_VALIDATION_FAILURE)?
+	})
 }
 
-pub fn wrap_oxr_err<F: FnOnce() -> Result<(), XrResult>>(f: F) -> XrResult {
+pub fn wrap_oxr_fn<F: FnOnce() -> Result<(), XrResult>>(f: F) -> XrResult {
 	match f() {
 		Ok(_) => XrResult::SUCCESS,
 		Err(e) => e,
 	}
+}
+
+macro_rules! wrap_oxr {
+	($($b:tt)+) => {
+		$crate::util::wrap_oxr_fn(move || -> std::result::Result<(), XrResult> { $($b)* })
+	};
 }

@@ -1,6 +1,5 @@
 use crate::{
 	oxr::{Instance, Session, SessionCreateInfo},
-	util::wrap_oxr_err,
 	XrResult,
 };
 
@@ -12,16 +11,16 @@ pub unsafe extern "system" fn xrCreateSession(
 	_create_info: &SessionCreateInfo,
 	_session: &mut Session,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
 /// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrDestroySession
 #[no_mangle]
 pub unsafe extern "system" fn xrDestroySession(_session: Session) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }

@@ -1,4 +1,4 @@
-use crate::{util::wrap_oxr_err, XrResult};
+use crate::XrResult;
 use openxr_sys::*;
 use std::ffi::c_char;
 
@@ -6,9 +6,9 @@ use std::ffi::c_char;
 /// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrDestroySpace
 #[no_mangle]
 pub unsafe extern "system" fn xrDestroySpace(_space: Space) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -20,9 +20,9 @@ pub unsafe extern "system" fn xrEnumerateSwapchainFormats(
 	_format_count_output: &mut u32,
 	_formats: &mut i64,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -33,18 +33,18 @@ pub unsafe extern "system" fn xrCreateSwapchain(
 	_create_info: &SwapchainCreateInfo,
 	_swapchain: &mut Swapchain,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
 /// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrDestroySwapchain
 #[no_mangle]
 pub unsafe extern "system" fn xrDestroySwapchain(_swapchain: Swapchain) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -56,9 +56,9 @@ pub unsafe extern "system" fn xrEnumerateSwapchainImages(
 	_image_count_output: &mut u32,
 	_images: &mut SwapchainImageBaseHeader,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -69,9 +69,9 @@ pub unsafe extern "system" fn xrAcquireSwapchainImage(
 	_acquire_info: &SwapchainImageAcquireInfo,
 	_index: &mut u32,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -81,9 +81,9 @@ pub unsafe extern "system" fn xrWaitSwapchainImage(
 	_swapchain: Swapchain,
 	_wait_info: &SwapchainImageWaitInfo,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -93,9 +93,9 @@ pub unsafe extern "system" fn xrReleaseSwapchainImage(
 	_swapchain: Swapchain,
 	_release_info: &SwapchainImageReleaseInfo,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -105,27 +105,27 @@ pub unsafe extern "system" fn xrBeginSession(
 	_session: Session,
 	_begin_info: &SessionBeginInfo,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
 /// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrEndSession
 #[no_mangle]
 pub unsafe extern "system" fn xrEndSession(_session: Session) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
 /// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrRequestExitSession
 #[no_mangle]
 pub unsafe extern "system" fn xrRequestExitSession(_session: Session) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -137,9 +137,9 @@ pub unsafe extern "system" fn xrEnumerateReferenceSpaces(
 	_space_count_output: &mut u32,
 	_spaces: &mut ReferenceSpaceType,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -150,9 +150,9 @@ pub unsafe extern "system" fn xrCreateReferenceSpace(
 	_create_info: &ReferenceSpaceCreateInfo,
 	_space: &mut Space,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -163,9 +163,9 @@ pub unsafe extern "system" fn xrCreateActionSpace(
 	_create_info: &ActionSpaceCreateInfo,
 	_space: &mut Space,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -177,9 +177,9 @@ pub unsafe extern "system" fn xrLocateSpace(
 	_time: Time,
 	_location: &mut SpaceLocation,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -192,9 +192,9 @@ pub unsafe extern "system" fn xrEnumerateViewConfigurations(
 	_view_configuration_type_count_output: &mut u32,
 	_view_configuration_types: &mut ViewConfigurationType,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -208,9 +208,9 @@ pub unsafe extern "system" fn xrEnumerateEnvironmentBlendModes(
 	_environment_blend_mode_count_output: &mut u32,
 	_environment_blend_modes: &mut EnvironmentBlendMode,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -222,9 +222,9 @@ pub unsafe extern "system" fn xrGetViewConfigurationProperties(
 	_view_configuration_type: ViewConfigurationType,
 	_configuration_properties: &mut ViewConfigurationProperties,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -238,9 +238,9 @@ pub unsafe extern "system" fn xrEnumerateViewConfigurationViews(
 	_view_count_output: &mut u32,
 	_views: &mut ViewConfigurationView,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -250,9 +250,9 @@ pub unsafe extern "system" fn xrBeginFrame(
 	_session: Session,
 	_frame_begin_info: &FrameBeginInfo,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -266,9 +266,9 @@ pub unsafe extern "system" fn xrLocateViews(
 	_view_count_output: &mut u32,
 	_views: &mut View,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -278,9 +278,9 @@ pub unsafe extern "system" fn xrEndFrame(
 	_session: Session,
 	_frame_end_info: &FrameEndInfo,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -291,9 +291,9 @@ pub unsafe extern "system" fn xrWaitFrame(
 	_frame_wait_info: &FrameWaitInfo,
 	_frame_state: &mut FrameState,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -304,9 +304,9 @@ pub unsafe extern "system" fn xrApplyHapticFeedback(
 	_haptic_action_info: &HapticActionInfo,
 	_haptic_feedback: &HapticBaseHeader,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -316,9 +316,9 @@ pub unsafe extern "system" fn xrStopHapticFeedback(
 	_session: Session,
 	_haptic_action_info: &HapticActionInfo,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -328,9 +328,9 @@ pub unsafe extern "system" fn xrPollEvent(
 	_instance: Instance,
 	_event_data: &mut EventDataBuffer,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -341,9 +341,9 @@ pub unsafe extern "system" fn xrStringToPath(
 	_path_string: &c_char,
 	_path: &mut Path,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -356,9 +356,9 @@ pub unsafe extern "system" fn xrPathToString(
 	_buffer_count_output: &mut u32,
 	_buffer: &mut c_char,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -369,9 +369,9 @@ pub unsafe extern "system" fn xrGetReferenceSpaceBoundsRect(
 	_reference_space_type: ReferenceSpaceType,
 	_bounds: &mut Extent2Df,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -382,9 +382,9 @@ pub unsafe extern "system" fn xrGetActionStateBoolean(
 	_get_info: &ActionStateGetInfo,
 	_state: &mut ActionStateBoolean,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -395,9 +395,9 @@ pub unsafe extern "system" fn xrGetActionStateFloat(
 	_get_info: &ActionStateGetInfo,
 	_state: &mut ActionStateFloat,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -408,9 +408,9 @@ pub unsafe extern "system" fn xrGetActionStateVector2f(
 	_get_info: &ActionStateGetInfo,
 	_state: &mut ActionStateVector2f,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -421,9 +421,9 @@ pub unsafe extern "system" fn xrGetActionStatePose(
 	_get_info: &ActionStateGetInfo,
 	_state: &mut ActionStatePose,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -434,18 +434,18 @@ pub unsafe extern "system" fn xrCreateActionSet(
 	_create_info: &ActionSetCreateInfo,
 	_action_set: &mut ActionSet,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
 /// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrDestroyActionSet
 #[no_mangle]
 pub unsafe extern "system" fn xrDestroyActionSet(_action_set: ActionSet) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -456,18 +456,18 @@ pub unsafe extern "system" fn xrCreateAction(
 	_create_info: &ActionCreateInfo,
 	_action: &mut Action,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
 /// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrDestroyAction
 #[no_mangle]
 pub unsafe extern "system" fn xrDestroyAction(_action: Action) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -477,9 +477,9 @@ pub unsafe extern "system" fn xrSuggestInteractionProfileBindings(
 	_instance: Instance,
 	_suggested_bindings: &InteractionProfileSuggestedBinding,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -489,9 +489,9 @@ pub unsafe extern "system" fn xrAttachSessionActionSets(
 	_session: Session,
 	_attach_info: &SessionActionSetsAttachInfo,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -502,9 +502,9 @@ pub unsafe extern "system" fn xrGetCurrentInteractionProfile(
 	_top_level_user_path: Path,
 	_interaction_profile: &mut InteractionProfileState,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -514,9 +514,9 @@ pub unsafe extern "system" fn xrSyncActions(
 	_session: Session,
 	_sync_info: &ActionsSyncInfo,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -529,9 +529,9 @@ pub unsafe extern "system" fn xrEnumerateBoundSourcesForAction(
 	_source_count_output: &mut u32,
 	_sources: &mut Path,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
 
 /// # Safety
@@ -544,7 +544,7 @@ pub unsafe extern "system" fn xrGetInputSourceLocalizedName(
 	_buffer_count_output: &mut u32,
 	_buffer: &mut c_char,
 ) -> XrResult {
-	wrap_oxr_err(move || {
+	wrap_oxr! {
 		todo!();
-	})
+	}
 }
