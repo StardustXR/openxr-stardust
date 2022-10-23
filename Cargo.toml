@@ -1,0 +1,14 @@
+[package]
+name = "openxr-stardust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "openxr_stardust"
+crate-type = ["cdylib"]
+
+[dependencies]
+lazy_static = "1.4.0"
+openxr-sys = { version = "0.9.3", features = ["linked", "mint"] }
+parking_lot = "0.12.1"
+rustc-hash = "1.1.0"
