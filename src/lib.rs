@@ -2,7 +2,10 @@ pub mod extensions;
 #[macro_use]
 pub mod util;
 pub mod instance;
+pub mod session;
 mod string;
+pub mod system;
+pub mod wip;
 
 pub use openxr_sys as oxr;
 
@@ -98,7 +101,7 @@ fn get_instance_proc_addr(
 			xrEnumerateApiLayerProperties,
 			xrCreateInstance
 		],
-		Some(instance) => StardustInstance::from_oxr(instance).get_proc_addr(name),
+		Some(instance) => StardustInstance::from_oxr(instance)?.get_proc_addr(name),
 	}
 }
 /// # Safety
