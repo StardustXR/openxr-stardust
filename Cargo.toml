@@ -8,7 +8,12 @@ name = "openxr_stardust"
 crate-type = ["cdylib"]
 
 [dependencies]
+anyhow = "1.0.66"
+bytemuck = "1.12.1"
 lazy_static = "1.4.0"
 openxr-sys = { version = "0.9.3", features = ["linked", "mint"] }
 parking_lot = "0.12.1"
 rustc-hash = "1.1.0"
+serde = { version = "1.0.147", features = ["derive"] }
+stardust-xr = "0.7.1"
+tokio = { version = "1.21.2", features = ["rt", "macros", "time"], default-features = false }

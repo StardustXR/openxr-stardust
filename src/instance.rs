@@ -1,35 +1,80 @@
-use openxr_sys::StructureType;
-
 use crate::{
 	extensions::xrEnumerateInstanceExtensionProperties,
-	oxr::{pfn::VoidFunction, Instance, InstanceCreateInfo, InstanceProperties, Version},
 	session::{xrCreateSession, xrDestroySession},
 	string::{xrResultToString, xrStructureTypeToString},
 	system::{xrGetSystem, xrGetSystemProperties},
-	util::str_from_const_char,
+	util::{copy_str_to_buffer, str_from_const_char},
 	wip::*,
 	xrEnumerateApiLayerProperties, XrResult,
 };
+use openxr_sys::{
+	pfn::VoidFunction, Instance, InstanceCreateInfo, InstanceProperties, StructureType, Version,
+};
+use serde::{de::DeserializeOwned, Serialize};
+use stardust_xr::{
+	client,
+	messenger::{self, MessageSender},
+	scenegraph::{Scenegraph, ScenegraphError},
+	schemas::flex::{deserialize, serialize},
+};
+use tokio::runtime::Runtime;
 
-#[derive(Debug)]
+struct DummyScenegraph;
+impl Scenegraph for DummyScenegraph {
+	fn execute_method(
+		&self,
+		_path: &str,
+		_method: &str,
+		_data: &[u8],
+	) -> Result<Vec<u8>, stardust_xr::scenegraph::ScenegraphError> {
+		Err(ScenegraphError::NodeNotFound)
+	}
+}
+
 pub struct StardustInstance {
-	app_name: String,
-	app_version: u32,
-	engine_name: String,
-	engine_version: u32,
-	api_version: Version,
+	runtime: Runtime,
+	message_sender: MessageSender,
 }
 impl StardustInstance {
 	pub fn new(info: &InstanceCreateInfo) -> Result<Self, XrResult> {
-		Ok(StardustInstance {
+		let runtime = tokio::runtime::Builder::new_current_thread()
+			.enable_io()
+			.enable_time()
+			.build()
+			.map_err(|_| XrResult::ERROR_RUNTIME_UNAVAILABLE)?;
+		let client = runtime
+			.block_on(client::connect())
+			.map_err(|_| XrResult::ERROR_RUNTIME_UNAVAILABLE)?;
+		let (message_sender, mut message_receiver) = messenger::create(client);
+		runtime.spawn(
+			async move { while message_receiver.dispatch(&DummyScenegraph).await.is_ok() {} },
+		);
+
+		let mut instance = StardustInstance {
+			runtime,
+			message_sender,
+		};
+
+		#[derive(Default, Serialize)]
+		struct InstanceSetupInfo {
+			app_name: String,
+			app_version: u32,
+			engine_name: String,
+			engine_version: u32,
+			api_version: u64,
+		}
+		let info = InstanceSetupInfo {
 			app_name: str_from_const_char(info.application_info.application_name.as_ptr())?
 				.to_string(),
 			app_version: info.application_info.application_version,
 			engine_name: str_from_const_char(info.application_info.engine_name.as_ptr())?
 				.to_string(),
 			engine_version: info.application_info.engine_version,
-			api_version: info.application_info.api_version,
-		})
+			api_version: info.application_info.api_version.into_raw(),
+		};
+		instance.send_signal("/openxr", "setupInstance", &info)?;
+
+		Ok(instance)
 	}
 	pub fn from_oxr<'a>(instance: Instance) -> Result<&'a mut StardustInstance, XrResult> {
 		let instance = instance.into_raw();
@@ -98,6 +143,42 @@ impl StardustInstance {
 			xrGetInputSourceLocalizedName
 		]
 	}
+	pub fn send_signal<S: Serialize>(
+		&mut self,
+		node_path: &str,
+		signal_name: &str,
+		data: &S,
+	) -> Result<(), XrResult> {
+		self.runtime
+			.block_on(
+				self.message_sender
+					.signal(node_path, signal_name, &serialize(data).unwrap()),
+			)
+			.map_err(|_| XrResult::ERROR_RUNTIME_FAILURE)
+	}
+	pub fn execute_method<S: Serialize, D: DeserializeOwned>(
+		&mut self,
+		node_path: &str,
+		method_name: &str,
+		send_data: &S,
+	) -> Result<anyhow::Result<D>, XrResult> {
+		let send_data = serialize(send_data).map_err(|_| XrResult::ERROR_RUNTIME_FAILURE)?;
+		let execute_method_future = self
+			.message_sender
+			.method(node_path, method_name, &send_data);
+
+		let future = async move {
+			let timeout = tokio::time::sleep(core::time::Duration::from_secs(1));
+			Ok(tokio::select! {
+				_ = timeout => return Err(XrResult::ERROR_RUNTIME_FAILURE),
+				d = execute_method_future => {
+					let data = d.map_err(|_| XrResult::ERROR_RUNTIME_FAILURE)?;
+					data.and_then(|data| Ok(deserialize(&data)?))
+				}
+			})
+		};
+		self.runtime.block_on(future)
+	}
 }
 
 /// # Safety
@@ -109,7 +190,6 @@ pub unsafe extern "system" fn xrCreateInstance(
 ) -> XrResult {
 	wrap_oxr! {
 		let stardust_instance = Box::new(StardustInstance::new(create_info)?);
-		dbg!(&stardust_instance);
 		*instance = Instance::from_raw(Box::into_raw(stardust_instance) as u64);
 		Ok(())
 	}
@@ -136,9 +216,7 @@ pub unsafe extern "system" fn xrGetInstanceProperties(
 ) -> XrResult {
 	wrap_oxr! {
 		instance_properties.ty = StructureType::INSTANCE_PROPERTIES;
-		instance_properties.runtime_name.fill(0);
-		instance_properties.runtime_name[..12]
-			.swap_with_slice(&mut b"Stardust XR\0".map(|b| b as i8));
+		copy_str_to_buffer("Stardust XR", &mut instance_properties.runtime_name);
 		instance_properties.runtime_version = Version::new(
 			env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap(),
 			env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(),

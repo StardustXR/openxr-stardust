@@ -1,6 +1,28 @@
 use crate::XrResult;
 use std::ffi::{c_char, CStr};
 
+pub type XrRsResult = Result<(), XrResult>;
+
+macro_rules! wrap_oxr {
+	($($b:tt)+) => {
+		match (move || -> std::result::Result<(), openxr_sys::Result> { $($b)* })() {
+			Ok(_) => openxr_sys::Result::SUCCESS,
+			Err(e) => e,
+		}
+	};
+}
+
+macro_rules! oxr_fns {
+	($s:expr,$($f:ident),*) => {
+		match $s {
+			$(
+				stringify!($f) => Ok(unsafe { std::mem::transmute($f as usize) }),
+			)*
+			_ => Err(XrResult::ERROR_HANDLE_INVALID),
+		}
+	};
+}
+
 /// # Safety
 /// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#xrEnumerateInstanceExtensionProperties
 pub unsafe fn enumerate<I: Clone>(
@@ -27,37 +49,17 @@ pub unsafe fn enumerate<I: Clone>(
 	XrResult::SUCCESS
 }
 
-macro_rules! oxr_fns {
-	($s:expr,$($f:ident),*) => {
-		match $s {
-			$(
-				stringify!($f) => Ok(unsafe { std::mem::transmute($f as usize) }),
-			)*
-			_ => Err(XrResult::ERROR_HANDLE_INVALID),
-		}
-	};
-}
-
 pub fn str_from_const_char<'a>(ptr: *const c_char) -> Result<&'a str, XrResult> {
 	if ptr.is_null() {
 		return Err(XrResult::ERROR_VALIDATION_FAILURE);
 	}
-	Ok(unsafe {
-		CStr::from_ptr(ptr)
-			.to_str()
-			.map_err(|_| XrResult::ERROR_VALIDATION_FAILURE)?
-	})
+
+	unsafe { CStr::from_ptr(ptr) }
+		.to_str()
+		.map_err(|_| XrResult::ERROR_VALIDATION_FAILURE)
 }
 
-pub fn wrap_oxr_fn<F: FnOnce() -> Result<(), XrResult>>(f: F) -> XrResult {
-	match f() {
-		Ok(_) => XrResult::SUCCESS,
-		Err(e) => e,
-	}
-}
-
-macro_rules! wrap_oxr {
-	($($b:tt)+) => {
-		$crate::util::wrap_oxr_fn(move || -> std::result::Result<(), XrResult> { $($b)* })
-	};
+pub fn copy_str_to_buffer(string: &str, buf: &mut [c_char]) {
+	bytemuck::cast_slice_mut(&mut buf[..string.len()]).copy_from_slice(string.as_bytes());
+	buf[string.len()] = 0;
 }
