@@ -1,6 +1,7 @@
 use crate::{util::copy_str_to_buffer, XrResult};
 use openxr_sys::{
 	FormFactor, Instance, StructureType, SystemGetInfo, SystemId, SystemProperties,
+	ViewConfigurationProperties, ViewConfigurationType, ViewConfigurationView,
 	MIN_COMPOSITION_LAYERS_SUPPORTED, TRUE,
 };
 
@@ -39,5 +40,50 @@ pub unsafe extern "system" fn xrGetSystemProperties(
 		properties.graphics_properties.max_swapchain_image_height = 1024 * 16;
 
 		Ok(())
+	}
+}
+
+/// # Safety
+/// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrEnumerateViewConfigurations
+#[no_mangle]
+pub unsafe extern "system" fn xrEnumerateViewConfigurations(
+	_instance: Instance,
+	_system_id: SystemId,
+	_view_configuration_type_capacity_input: u32,
+	_view_configuration_type_count_output: &mut u32,
+	_view_configuration_types: &mut ViewConfigurationType,
+) -> XrResult {
+	wrap_oxr! {
+		todo!();
+	}
+}
+
+/// # Safety
+/// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrGetViewConfigurationProperties
+#[no_mangle]
+pub unsafe extern "system" fn xrGetViewConfigurationProperties(
+	_instance: Instance,
+	_system_id: SystemId,
+	_view_configuration_type: ViewConfigurationType,
+	_configuration_properties: &mut ViewConfigurationProperties,
+) -> XrResult {
+	wrap_oxr! {
+		todo!();
+	}
+}
+
+/// # Safety
+/// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrEnumerateViewConfigurationViews
+#[no_mangle]
+pub unsafe extern "system" fn xrEnumerateViewConfigurationViews(
+	_instance: Instance,
+	_system_id: SystemId,
+	_view_configuration_type: ViewConfigurationType,
+	_view_capacity_input: u32,
+	_view_count_output: &mut u32,
+	_views: &mut ViewConfigurationView,
+) -> XrResult {
+	wrap_oxr! {
+		todo!();
 	}
 }
