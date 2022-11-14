@@ -5,7 +5,8 @@ pub type XrRsResult = Result<(), XrResult>;
 
 macro_rules! wrap_oxr {
 	($($b:tt)+) => {
-		match (move || -> std::result::Result<(), openxr_sys::Result> { $($b)* })() {
+		#[allow(unreachable_code)]
+		match (move || -> std::result::Result<(), openxr_sys::Result> { {$($b)*} Ok(()) })() {
 			Ok(_) => openxr_sys::Result::SUCCESS,
 			Err(e) => e,
 		}
@@ -30,23 +31,23 @@ pub unsafe fn enumerate<I: Clone>(
 	output_count: &mut Option<u32>,
 	items_ptr: *mut I,
 	items: &[I],
-) -> XrResult {
-	if output_count.is_none() {
-		return XrResult::ERROR_VALIDATION_FAILURE;
-	}
+) -> Result<(), XrResult> {
+	// if output_count.is_none() {
+	// 	return Err(XrResult::ERROR_VALIDATION_FAILURE);
+	// }
 	*output_count = Some(items.len() as u32);
 	if input_count == 0 || items_ptr.is_null() {
-		return XrResult::SUCCESS;
+		return Ok(());
 	}
 	if input_count < items.len() as u32 {
-		return XrResult::ERROR_SIZE_INSUFFICIENT;
+		return Err(XrResult::ERROR_SIZE_INSUFFICIENT);
 	}
 	if items_ptr.is_null() {
-		return XrResult::SUCCESS;
+		return Ok(());
 	}
 	std::ptr::copy_nonoverlapping(items.as_ptr(), items_ptr, items.len());
 
-	XrResult::SUCCESS
+	Ok(())
 }
 
 pub fn str_from_const_char<'a>(ptr: *const c_char) -> Result<&'a str, XrResult> {

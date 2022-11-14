@@ -10,6 +10,8 @@ pub unsafe extern "system" fn xrEnumerateInstanceExtensionProperties(
 	output_count: &mut Option<u32>,
 	items_ptr: *mut ExtensionProperties,
 ) -> openxr_sys::Result {
-	let extensions = [];
-	enumerate(input_count, output_count, items_ptr, &extensions)
+	wrap_oxr! {
+		let extensions = [];
+		enumerate(input_count, output_count, items_ptr, &extensions)?;
+	}
 }

@@ -1,6 +1,6 @@
-pub mod extensions;
 #[macro_use]
 pub mod util;
+pub mod extensions;
 pub mod instance;
 pub mod session;
 mod string;
@@ -11,14 +11,11 @@ pub use openxr_sys as oxr;
 
 use extensions::xrEnumerateInstanceExtensionProperties;
 use instance::{xrCreateInstance, StardustInstance};
-use lazy_static::lazy_static;
 use oxr::{
 	loader::{XrNegotiateLoaderInfo, XrNegotiateRuntimeRequest, CURRENT_LOADER_RUNTIME_VERSION},
 	pfn::VoidFunction,
 	ApiLayerProperties, Instance, CURRENT_API_VERSION,
 };
-use parking_lot::Mutex;
-use rustc_hash::FxHashMap;
 use std::{
 	ffi::c_char,
 	mem::{size_of, transmute},
@@ -64,11 +61,6 @@ pub extern "system" fn xrNegotiateLoaderRuntimeInterface(
 	XrResult::SUCCESS
 }
 
-lazy_static! {
-	static ref INSTANCES: Mutex<FxHashMap<Instance, VoidFunction>> =
-		Mutex::new(FxHashMap::default());
-}
-
 /// # Safety
 /// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#xrGetInstanceProcAddr
 #[no_mangle]
@@ -84,7 +76,6 @@ pub unsafe extern "system" fn xrGetInstanceProcAddr(
 			Some(instance)
 		};
 		*function = get_instance_proc_addr(instance, str_from_const_char(name)?)?;
-		Ok(())
 	}
 }
 
@@ -111,11 +102,13 @@ pub unsafe extern "system" fn xrEnumerateApiLayerProperties(
 	property_count_output: &mut Option<u32>,
 	properties: *mut ApiLayerProperties,
 ) -> XrResult {
-	let api_layers = [];
-	enumerate(
-		property_capacity_input,
-		property_count_output,
-		properties,
-		&api_layers,
-	)
+	wrap_oxr! {
+		let api_layers = [];
+		enumerate(
+			property_capacity_input,
+			property_count_output,
+			properties,
+			&api_layers,
+		)?;
+	}
 }

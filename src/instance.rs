@@ -3,7 +3,8 @@ use crate::{
 	session::{xrCreateSession, xrDestroySession},
 	string::{xrResultToString, xrStructureTypeToString},
 	system::{
-		xrEnumerateViewConfigurationViews, xrGetSystem, xrGetSystemProperties,
+		xrEnumerateEnvironmentBlendModes, xrEnumerateViewConfigurationViews,
+		xrEnumerateViewConfigurations, xrGetSystem, xrGetSystemProperties,
 		xrGetViewConfigurationProperties,
 	},
 	util::{copy_str_to_buffer, str_from_const_char},
@@ -75,7 +76,7 @@ impl StardustInstance {
 			engine_version: info.application_info.engine_version,
 			api_version: info.application_info.api_version.into_raw(),
 		};
-		instance.send_signal("/openxr", "setupInstance", &info)?;
+		instance.send_signal("/openxr", "setup_instance", &info)?;
 
 		Ok(instance)
 	}
@@ -116,6 +117,7 @@ impl StardustInstance {
 			xrCreateReferenceSpace,
 			xrCreateActionSpace,
 			xrLocateSpace,
+			xrEnumerateViewConfigurations,
 			xrEnumerateViewConfigurationViews,
 			xrEnumerateEnvironmentBlendModes,
 			xrGetViewConfigurationProperties,
@@ -152,11 +154,12 @@ impl StardustInstance {
 		signal_name: &str,
 		data: &S,
 	) -> Result<(), XrResult> {
+		let serialized_data = serialize(data).map_err(|_| XrResult::ERROR_RUNTIME_FAILURE)?;
+		let signal_future = self
+			.message_sender
+			.signal(node_path, signal_name, &serialized_data);
 		self.runtime
-			.block_on(
-				self.message_sender
-					.signal(node_path, signal_name, &serialize(data).unwrap()),
-			)
+			.block_on(signal_future)
 			.map_err(|_| XrResult::ERROR_RUNTIME_FAILURE)
 	}
 	pub fn execute_method<S: Serialize, D: DeserializeOwned>(
@@ -194,7 +197,6 @@ pub unsafe extern "system" fn xrCreateInstance(
 	wrap_oxr! {
 		let stardust_instance = Box::new(StardustInstance::new(create_info)?);
 		*instance = Instance::from_raw(Box::into_raw(stardust_instance) as u64);
-		Ok(())
 	}
 }
 
@@ -206,7 +208,6 @@ pub unsafe extern "system" fn xrDestroyInstance(instance: Instance) -> XrResult 
 		drop(Box::from_raw(
 			StardustInstance::from_oxr(instance)? as *mut _
 		));
-		Ok(())
 	}
 }
 
@@ -225,6 +226,5 @@ pub unsafe extern "system" fn xrGetInstanceProperties(
 			env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(),
 			env!("CARGO_PKG_VERSION_PATCH").parse().unwrap(),
 		);
-		Ok(())
 	}
 }
