@@ -21,6 +21,7 @@ use stardust_xr::{
 	scenegraph::{Scenegraph, ScenegraphError},
 	schemas::flex::{deserialize, serialize},
 };
+use std::ptr::slice_from_raw_parts;
 use tokio::runtime::Runtime;
 
 struct DummyScenegraph;
@@ -35,12 +36,27 @@ impl Scenegraph for DummyScenegraph {
 	}
 }
 
+#[derive(Default, Serialize)]
+struct SetupInfo {
+	app_info: ApplicationInfo,
+	extension_names: Vec<String>,
+}
+#[derive(Default, Serialize)]
+struct ApplicationInfo {
+	app_name: String,
+	app_version: u32,
+	engine_name: String,
+	engine_version: u32,
+	api_version: u64,
+}
+
 pub struct StardustInstance {
 	runtime: Runtime,
 	message_sender: MessageSender,
+	pub extension_headless_enabled: bool,
 }
 impl StardustInstance {
-	pub fn new(info: &InstanceCreateInfo) -> Result<Self, XrResult> {
+	fn new(info: &SetupInfo) -> Result<Self, XrResult> {
 		let runtime = tokio::runtime::Builder::new_current_thread()
 			.enable_io()
 			.enable_time()
@@ -57,24 +73,7 @@ impl StardustInstance {
 		let mut instance = StardustInstance {
 			runtime,
 			message_sender,
-		};
-
-		#[derive(Default, Serialize)]
-		struct InstanceSetupInfo {
-			app_name: String,
-			app_version: u32,
-			engine_name: String,
-			engine_version: u32,
-			api_version: u64,
-		}
-		let info = InstanceSetupInfo {
-			app_name: str_from_const_char(info.application_info.application_name.as_ptr())?
-				.to_string(),
-			app_version: info.application_info.application_version,
-			engine_name: str_from_const_char(info.application_info.engine_name.as_ptr())?
-				.to_string(),
-			engine_version: info.application_info.engine_version,
-			api_version: info.application_info.api_version.into_raw(),
+			extension_headless_enabled: info.extension_names.iter().any(|n| n == "XR_MND_headless"),
 		};
 		instance.send_signal("/openxr", "setup_instance", &info)?;
 
@@ -191,11 +190,33 @@ impl StardustInstance {
 /// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#xrCreateInstance
 #[no_mangle]
 pub unsafe extern "system" fn xrCreateInstance(
-	create_info: &InstanceCreateInfo,
+	info: &InstanceCreateInfo,
 	instance: &mut Instance,
 ) -> XrResult {
 	wrap_oxr! {
-		let stardust_instance = Box::new(StardustInstance::new(create_info)?);
+		let app_name = str_from_const_char(info.application_info.application_name.as_ptr())?
+		.to_string();
+		let engine_name = str_from_const_char(info.application_info.engine_name.as_ptr())?
+		.to_string();
+		let extension_names: Result<Vec<String>, XrResult> =
+			(&*slice_from_raw_parts(info.enabled_extension_names, info.enabled_extension_count as usize))
+				.iter()
+				.map(|name| str_from_const_char(&**name).map(String::from)).collect();
+				let extension_names = extension_names.map_err(|_| XrResult::ERROR_VALIDATION_FAILURE)?;
+
+		println!("Extensions: {:#?}", extension_names);
+		let info = SetupInfo {
+			app_info: ApplicationInfo {
+				app_name,
+				app_version: info.application_info.application_version,
+				engine_name,
+				engine_version: info.application_info.engine_version,
+				api_version: info.application_info.api_version.into_raw(),
+			},
+			extension_names,
+		};
+
+		let stardust_instance = Box::new(StardustInstance::new(&info)?);
 		*instance = Instance::from_raw(Box::into_raw(stardust_instance) as u64);
 	}
 }

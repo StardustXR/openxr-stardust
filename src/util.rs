@@ -1,5 +1,10 @@
+use openxr_sys::LoaderInitInfoBaseHeaderKHR;
+
 use crate::XrResult;
-use std::ffi::{c_char, CStr};
+use std::{
+	ffi::{c_char, CStr},
+	ptr,
+};
 
 pub type XrRsResult = Result<(), XrResult>;
 
@@ -63,4 +68,18 @@ pub fn str_from_const_char<'a>(ptr: *const c_char) -> Result<&'a str, XrResult> 
 pub fn copy_str_to_buffer(string: &str, buf: &mut [c_char]) {
 	bytemuck::cast_slice_mut(&mut buf[..string.len()]).copy_from_slice(string.as_bytes());
 	buf[string.len()] = 0;
+}
+
+pub unsafe fn get_next_chain<F>(first: &F) -> Vec<LoaderInitInfoBaseHeaderKHR> {
+	// really gotta improve this tbh
+
+	let mut chain: Vec<LoaderInitInfoBaseHeaderKHR> =
+		vec![std::mem::transmute::<&F, &LoaderInitInfoBaseHeaderKHR>(first).clone()];
+	while let Some(next) = chain
+		.last()
+		.and_then(|c| (c.next != ptr::null()).then_some(c.next))
+	{
+		chain.push((&*std::mem::transmute::<_, *const LoaderInitInfoBaseHeaderKHR>(next)).clone());
+	}
+	chain
 }
