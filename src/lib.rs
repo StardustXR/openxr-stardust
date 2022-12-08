@@ -10,7 +10,7 @@ pub mod wip;
 pub use openxr_sys as oxr;
 
 use extensions::xrEnumerateInstanceExtensionProperties;
-use instance::{xrCreateInstance, StardustInstance};
+use instance::xrCreateInstance;
 use oxr::{
 	loader::{XrNegotiateLoaderInfo, XrNegotiateRuntimeRequest, CURRENT_LOADER_RUNTIME_VERSION},
 	pfn::VoidFunction,
@@ -20,7 +20,7 @@ use std::{
 	ffi::c_char,
 	mem::{size_of, transmute},
 };
-use util::{enumerate, str_from_const_char};
+use util::{enumerate, str_from_const_char, Handle};
 
 pub type XrResult = openxr_sys::Result;
 
@@ -90,7 +90,7 @@ fn get_instance_proc_addr(
 			xrEnumerateApiLayerProperties,
 			xrCreateInstance
 		],
-		Some(instance) => StardustInstance::from_oxr(instance)?.get_proc_addr(name),
+		Some(instance) => instance.get_stardust()?.get_proc_addr(name),
 	}
 }
 

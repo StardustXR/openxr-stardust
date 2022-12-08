@@ -83,3 +83,21 @@ pub unsafe fn get_next_chain<F>(first: &F) -> Vec<LoaderInitInfoBaseHeaderKHR> {
 	}
 	chain
 }
+
+pub trait Handle: Sized {
+	type StardustType;
+
+	fn raw(&self) -> u64;
+	fn get_stardust<'a>(&self) -> Result<&'a mut Self::StardustType, XrResult> {
+		let handle = self.raw();
+		if handle == 0 {
+			Err(XrResult::ERROR_HANDLE_INVALID)
+		} else {
+			Ok(unsafe { &mut *(handle as *mut Self::StardustType) })
+		}
+	}
+	fn destroy(self) -> Result<(), XrResult> {
+		drop(unsafe { Box::from_raw(self.get_stardust()? as *mut _) });
+		Ok(())
+	}
+}

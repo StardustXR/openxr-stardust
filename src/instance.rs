@@ -1,5 +1,12 @@
 use crate::{
 	extensions::xrEnumerateInstanceExtensionProperties,
+	input::{
+		xrApplyHapticFeedback, xrAttachSessionActionSets, xrCreateAction, xrCreateActionSet,
+		xrDestroyAction, xrDestroyActionSet, xrEnumerateBoundSourcesForAction,
+		xrGetActionStateBoolean, xrGetActionStateFloat, xrGetActionStatePose,
+		xrGetActionStateVector2f, xrGetCurrentInteractionProfile, xrGetInputSourceLocalizedName,
+		xrStopHapticFeedback, xrSuggestInteractionProfileBindings, xrSyncActions,
+	},
 	session::{xrCreateSession, xrDestroySession},
 	string::{xrResultToString, xrStructureTypeToString},
 	system::{
@@ -7,7 +14,7 @@ use crate::{
 		xrEnumerateViewConfigurations, xrGetSystem, xrGetSystemProperties,
 		xrGetViewConfigurationProperties,
 	},
-	util::{copy_str_to_buffer, str_from_const_char},
+	util::{copy_str_to_buffer, str_from_const_char, Handle},
 	wip::*,
 	xrEnumerateApiLayerProperties, XrResult,
 };
@@ -50,6 +57,14 @@ struct ApplicationInfo {
 	api_version: u64,
 }
 
+impl Handle for Instance {
+	type StardustType = StardustInstance;
+
+	fn raw(&self) -> u64 {
+		self.into_raw()
+	}
+}
+
 pub struct StardustInstance {
 	runtime: Runtime,
 	message_sender: MessageSender,
@@ -78,14 +93,6 @@ impl StardustInstance {
 		instance.send_signal("/openxr", "setup_instance", &info)?;
 
 		Ok(instance)
-	}
-	pub fn from_oxr<'a>(instance: Instance) -> Result<&'a mut StardustInstance, XrResult> {
-		let instance = instance.into_raw();
-		if instance == 0 {
-			Err(XrResult::ERROR_HANDLE_INVALID)
-		} else {
-			Ok(unsafe { &mut *(instance as *mut StardustInstance) })
-		}
 	}
 	pub fn get_proc_addr(&self, name: &str) -> Result<VoidFunction, XrResult> {
 		oxr_fns![
@@ -226,9 +233,7 @@ pub unsafe extern "system" fn xrCreateInstance(
 #[no_mangle]
 pub unsafe extern "system" fn xrDestroyInstance(instance: Instance) -> XrResult {
 	wrap_oxr! {
-		drop(Box::from_raw(
-			StardustInstance::from_oxr(instance)? as *mut _
-		));
+		instance.destroy()?;
 	}
 }
 

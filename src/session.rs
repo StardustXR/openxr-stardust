@@ -1,10 +1,18 @@
 use crate::{
 	instance::StardustInstance,
 	oxr::{Instance, Session, SessionCreateInfo},
-	util::get_next_chain,
+	util::{get_next_chain, Handle},
 	XrResult,
 };
 use openxr_sys::SystemId;
+
+impl Handle for Session {
+	type StardustType = StardustSession;
+
+	fn raw(&self) -> u64 {
+		self.into_raw()
+	}
+}
 
 pub struct StardustSession {
 	instance: Instance,
@@ -14,7 +22,7 @@ impl StardustSession {
 	fn new(instance: Instance, system: SystemId) -> Result<Self, XrResult> {
 		let id = nanoid::nanoid!();
 		{
-			let instance = StardustInstance::from_oxr(instance)?;
+			let instance = instance.get_stardust()?;
 			instance.send_signal(
 				&format!("/openxr/system{}", system.into_raw()),
 				"create_session",
@@ -28,13 +36,11 @@ impl StardustSession {
 		};
 		Ok(session)
 	}
-	pub fn from_oxr<'a>(session: Session) -> Result<&'a mut StardustSession, XrResult> {
-		let instance = session.into_raw();
-		if instance == 0 {
-			Err(XrResult::ERROR_HANDLE_INVALID)
-		} else {
-			Ok(unsafe { &mut *(instance as *mut StardustSession) })
-		}
+	pub fn instance<'a>(&'a mut self) -> Result<&'a mut StardustInstance, XrResult> {
+		self.instance.get_stardust()
+	}
+	pub fn node_path(&self) -> &str {
+		&self.node_path
 	}
 }
 
@@ -47,7 +53,7 @@ pub unsafe extern "system" fn xrCreateSession(
 	session: &mut Session,
 ) -> XrResult {
 	wrap_oxr! {
-		let instance = StardustInstance::from_oxr(oxr_instance)?;
+		let instance = oxr_instance.get_stardust()?;
 		let next_chain = get_next_chain(create_info);
 		let contains_graphics = next_chain.iter().any(|next| format!("{:?}", next.ty).contains("_enable")); // another ugly hack
 		if !contains_graphics && !instance.extension_headless_enabled {
@@ -64,8 +70,6 @@ pub unsafe extern "system" fn xrCreateSession(
 #[no_mangle]
 pub unsafe extern "system" fn xrDestroySession(session: Session) -> XrResult {
 	wrap_oxr! {
-		drop(Box::from_raw(
-			StardustSession::from_oxr(session)? as *mut _
-		));
+		session.destroy()?;
 	}
 }

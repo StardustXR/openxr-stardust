@@ -1,8 +1,5 @@
-use std::ptr;
-
 use crate::{
-	instance::StardustInstance,
-	util::{copy_str_to_buffer, enumerate},
+	util::{copy_str_to_buffer, enumerate, Handle},
 	XrResult,
 };
 use openxr_sys::{
@@ -11,6 +8,7 @@ use openxr_sys::{
 	MIN_COMPOSITION_LAYERS_SUPPORTED, TRUE,
 };
 use serde::Deserialize;
+use std::ptr;
 
 /// # Safety
 /// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrGetSystem
@@ -21,7 +19,7 @@ pub extern "system" fn xrGetSystem(
 	system_id: &mut SystemId,
 ) -> XrResult {
 	wrap_oxr! {
-		let instance = StardustInstance::from_oxr(instance)?;
+		let instance = instance.get_stardust()?;
 		let system = instance.execute_method("/openxr", "get_system", &(get_info.form_factor.into_raw() as u32))?;
 		let system_type: u32 = system.map_err(|_| XrResult::ERROR_FORM_FACTOR_UNSUPPORTED)?;
 		*system_id = SystemId::from_raw(system_type as u64);
@@ -96,7 +94,7 @@ pub unsafe extern "system" fn xrEnumerateViewConfigurationViews(
 		max_image_rect_height: u32,
 	}
 	wrap_oxr! {
-		let stardust_instance = StardustInstance::from_oxr(instance)?;
+		let stardust_instance = instance.get_stardust()?;
 		let views: Vec<StardustView> = stardust_instance.execute_method(&format!("/openxr/system{}", system_id.into_raw()), "views", &view_configuration_type.into_raw())?.map_err(|_| XrResult::ERROR_HANDLE_INVALID)?;
 		let views = views.into_iter().map(|v| ViewConfigurationView {
 			ty: StructureType::VIEW_CONFIGURATION_VIEW,
