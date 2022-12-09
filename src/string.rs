@@ -1,5 +1,9 @@
+use openxr_sys::Path;
+use slotmap::Key;
+
 use crate::{
 	oxr::{Instance, StructureType, MAX_RESULT_STRING_SIZE, MAX_STRUCTURE_NAME_SIZE},
+	util::{enumerate, str_from_const_char, Handle},
 	XrResult,
 };
 use std::ffi::c_char;
@@ -602,4 +606,36 @@ pub unsafe extern "system" fn xrStructureTypeToString(
 	);
 
 	XrResult::SUCCESS
+}
+
+/// # Safety
+/// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrStringToPath
+#[no_mangle]
+pub unsafe extern "system" fn xrStringToPath(
+	instance: Instance,
+	path_string: *const c_char,
+	path: &mut Path,
+) -> XrResult {
+	wrap_oxr! {
+		let stardust_instance = instance.get_stardust()?;
+		let path_string = str_from_const_char(path_string)?;
+		let key = stardust_instance.paths.insert(path_string.to_string());
+		*path = Path::from_raw(key.data().as_ffi());
+	}
+}
+
+/// # Safety
+/// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrPathToString
+#[no_mangle]
+pub unsafe extern "system" fn xrPathToString(
+	instance: Instance,
+	path: Path,
+	buffer_capacity_input: u32,
+	buffer_count_output: &mut Option<u32>,
+	buffer: *mut c_char,
+) -> XrResult {
+	wrap_oxr! {
+		let path = instance.get_stardust()?.path(path)?.into_bytes().into_iter().map(|c| c as i8).collect::<Vec<_>>();
+		enumerate(buffer_capacity_input, buffer_count_output, buffer, &path)?;
+	}
 }

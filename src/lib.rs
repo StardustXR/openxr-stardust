@@ -1,6 +1,7 @@
 #[macro_use]
 pub mod util;
 pub mod extensions;
+pub mod input;
 pub mod instance;
 pub mod session;
 mod string;

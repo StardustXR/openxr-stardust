@@ -1,6 +1,5 @@
 use crate::XrResult;
 use openxr_sys::*;
-use std::ffi::c_char;
 
 /// # Safety
 /// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrDestroySpace
@@ -241,34 +240,6 @@ pub unsafe extern "system" fn xrWaitFrame(
 pub unsafe extern "system" fn xrPollEvent(
 	_instance: Instance,
 	_event_data: &mut EventDataBuffer,
-) -> XrResult {
-	wrap_oxr! {
-		todo!();
-	}
-}
-
-/// # Safety
-/// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrStringToPath
-#[no_mangle]
-pub unsafe extern "system" fn xrStringToPath(
-	_instance: Instance,
-	_path_string: &c_char,
-	_path: &mut Path,
-) -> XrResult {
-	wrap_oxr! {
-		todo!();
-	}
-}
-
-/// # Safety
-/// https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#xrPathToString
-#[no_mangle]
-pub unsafe extern "system" fn xrPathToString(
-	_instance: Instance,
-	_path: Path,
-	_buffer_capacity_input: u32,
-	_buffer_count_output: &mut u32,
-	_buffer: &mut c_char,
 ) -> XrResult {
 	wrap_oxr! {
 		todo!();

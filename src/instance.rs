@@ -8,7 +8,7 @@ use crate::{
 		xrStopHapticFeedback, xrSuggestInteractionProfileBindings, xrSyncActions,
 	},
 	session::{xrCreateSession, xrDestroySession},
-	string::{xrResultToString, xrStructureTypeToString},
+	string::{xrPathToString, xrResultToString, xrStringToPath, xrStructureTypeToString},
 	system::{
 		xrEnumerateEnvironmentBlendModes, xrEnumerateViewConfigurationViews,
 		xrEnumerateViewConfigurations, xrGetSystem, xrGetSystemProperties,
@@ -19,9 +19,11 @@ use crate::{
 	xrEnumerateApiLayerProperties, XrResult,
 };
 use openxr_sys::{
-	pfn::VoidFunction, Instance, InstanceCreateInfo, InstanceProperties, StructureType, Version,
+	pfn::VoidFunction, Instance, InstanceCreateInfo, InstanceProperties, Path, StructureType,
+	Version,
 };
 use serde::{de::DeserializeOwned, Serialize};
+use slotmap::{DefaultKey, KeyData, SlotMap};
 use stardust_xr::{
 	client,
 	messenger::{self, MessageSender},
@@ -68,6 +70,7 @@ impl Handle for Instance {
 pub struct StardustInstance {
 	runtime: Runtime,
 	message_sender: MessageSender,
+	pub paths: SlotMap<DefaultKey, String>,
 	pub extension_headless_enabled: bool,
 }
 impl StardustInstance {
@@ -88,6 +91,7 @@ impl StardustInstance {
 		let mut instance = StardustInstance {
 			runtime,
 			message_sender,
+			paths: SlotMap::default(),
 			extension_headless_enabled: info.extension_names.iter().any(|n| n == "XR_MND_headless"),
 		};
 		instance.send_signal("/openxr", "setup_instance", &info)?;
@@ -190,6 +194,12 @@ impl StardustInstance {
 			})
 		};
 		self.runtime.block_on(future)
+	}
+	pub fn path(&self, path: Path) -> Result<String, XrResult> {
+		self.paths
+			.get(DefaultKey::from(KeyData::from_ffi(path.into_raw())))
+			.cloned()
+			.ok_or(XrResult::ERROR_PATH_INVALID)
 	}
 }
 
